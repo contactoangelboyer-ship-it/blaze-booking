@@ -4,13 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 const isReplit = process.env.REPL_ID !== undefined;
-
-// PORT and BASE_PATH are Replit-specific; use sensible defaults elsewhere (Vercel, local)
 const rawPort = process.env.PORT ?? "3000";
 const port = Number(rawPort);
 const basePath = process.env.BASE_PATH ?? "/";
 
-const replitPlugins =
+const devPlugins =
   isReplit && process.env.NODE_ENV !== "production"
     ? [
         ...(await import("@replit/vite-plugin-runtime-error-modal").then((m) =>
@@ -27,7 +25,7 @@ const replitPlugins =
 
 export default defineConfig({
   base: basePath,
-  plugins: [react(), tailwindcss(), ...replitPlugins],
+  plugins: [react(), tailwindcss(), ...devPlugins],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
@@ -44,9 +42,7 @@ export default defineConfig({
     strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
-    fs: {
-      strict: true,
-    },
+    fs: { strict: true },
   },
   preview: {
     port,
