@@ -102,6 +102,8 @@ async function buildAll() {
       "electron",
     ],
     sourcemap: "linked",
+      // Use the "workspace" condition so pnpm workspace packages resolve to their .ts source
+      conditions: ["workspace"],
     plugins: [
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })
