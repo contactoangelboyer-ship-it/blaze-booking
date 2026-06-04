@@ -2,14 +2,14 @@
   "version": 2,
   "outputDirectory": ".",
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "src/**,../../lib/**"
+    "api/index.js": {
+      "includeFiles": "dist/**"
     }
   },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api/index.js"
     }
   ]
 }
