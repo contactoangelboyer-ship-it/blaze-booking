@@ -1,0 +1,445 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Blaze Long Island Car Services - Reservation API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: reservations
+    description: Reservation management
+  - name: pricing
+    description: Pricing information
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /reservations:
+    get:
+      operationId: listReservations
+      tags: [reservations]
+      summary: List all reservations
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled, completed]
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+    post:
+      operationId: createReservation
+      tags: [reservations]
+      summary: Create a new reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationInput"
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reservations/stats:
+    get:
+      operationId: getReservationStats
+      tags: [reservations]
+      summary: Get reservation statistics
+      responses:
+        "200":
+          description: Reservation statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationStats"
+
+  /reservations/{id}:
+    get:
+      operationId: getReservation
+      tags: [reservations]
+      summary: Get a reservation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reservation found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reservations/{id}/status:
+    patch:
+      operationId: updateReservationStatus
+      tags: [reservations]
+      summary: Update reservation status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /pricing:
+    get:
+      operationId: getPricing
+      tags: [pricing]
+      summary: Get pricing for all vehicles and service types
+      responses:
+        "200":
+          description: Pricing information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingInfo"
+
+  /pricing/estimate:
+    post:
+      operationId: estimateFare
+      tags: [pricing]
+      summary: Estimate fare for a trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FareEstimateInput"
+      responses:
+        "200":
+          description: Fare estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FareEstimate"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Reservation:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - phone
+        - pickupAddress
+        - dropoffAddress
+        - pickupDate
+        - pickupTime
+        - serviceType
+        - vehicleType
+        - passengers
+        - status
+        - estimatedFare
+        - createdAt
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        pickupAddress:
+          type: string
+        dropoffAddress:
+          type: string
+        pickupDate:
+          type: string
+        pickupTime:
+          type: string
+        serviceType:
+          type: string
+          enum: [airport_transfer, point_to_point, hourly, corporate, special_event]
+        vehicleType:
+          type: string
+          enum: [sedan, suv]
+        passengers:
+          type: integer
+        luggage:
+          type: integer
+        hours:
+          type: ["integer", "null"]
+        flightNumber:
+          type: ["string", "null"]
+        specialRequests:
+          type: ["string", "null"]
+        estimatedFare:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        createdAt:
+          type: string
+
+    ReservationInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - phone
+        - pickupAddress
+        - dropoffAddress
+        - pickupDate
+        - pickupTime
+        - serviceType
+        - vehicleType
+        - passengers
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        pickupAddress:
+          type: string
+        dropoffAddress:
+          type: string
+        pickupDate:
+          type: string
+        pickupTime:
+          type: string
+        serviceType:
+          type: string
+          enum: [airport_transfer, point_to_point, hourly, corporate, special_event]
+        vehicleType:
+          type: string
+          enum: [sedan, suv]
+        passengers:
+          type: integer
+        luggage:
+          type: integer
+        hours:
+          type: ["integer", "null"]
+        flightNumber:
+          type: ["string", "null"]
+        specialRequests:
+          type: ["string", "null"]
+        estimatedFare:
+          type: number
+
+    StatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+
+    ReservationStats:
+      type: object
+      required:
+        - total
+        - pending
+        - confirmed
+        - completed
+        - cancelled
+        - totalRevenue
+        - sedanBookings
+        - suvBookings
+        - airportTransfers
+        - hourlyBookings
+        - corporateBookings
+        - specialEvents
+        - pointToPoint
+      properties:
+        total:
+          type: integer
+        pending:
+          type: integer
+        confirmed:
+          type: integer
+        completed:
+          type: integer
+        cancelled:
+          type: integer
+        totalRevenue:
+          type: number
+        sedanBookings:
+          type: integer
+        suvBookings:
+          type: integer
+        airportTransfers:
+          type: integer
+        hourlyBookings:
+          type: integer
+        corporateBookings:
+          type: integer
+        specialEvents:
+          type: integer
+        pointToPoint:
+          type: integer
+
+    VehiclePricing:
+      type: object
+      required:
+        - vehicleType
+        - displayName
+        - capacity
+        - airportBaseRate
+        - perMileRate
+        - hourlyRate
+        - hourlyMinimum
+        - corporateRate
+        - specialEventRate
+      properties:
+        vehicleType:
+          type: string
+        displayName:
+          type: string
+        capacity:
+          type: integer
+        airportBaseRate:
+          type: number
+        perMileRate:
+          type: number
+        hourlyRate:
+          type: number
+        hourlyMinimum:
+          type: integer
+        corporateRate:
+          type: number
+        specialEventRate:
+          type: number
+
+    PricingInfo:
+      type: object
+      required:
+        - vehicles
+        - gratuityPercent
+        - airportSurcharge
+      properties:
+        vehicles:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehiclePricing"
+        gratuityPercent:
+          type: number
+        airportSurcharge:
+          type: number
+
+    FareEstimateInput:
+      type: object
+      required:
+        - vehicleType
+        - serviceType
+      properties:
+        vehicleType:
+          type: string
+          enum: [sedan, suv]
+        serviceType:
+          type: string
+          enum: [airport_transfer, point_to_point, hourly, corporate, special_event]
+        distanceMiles:
+          type: number
+        hours:
+          type: integer
+
+    FareEstimate:
+      type: object
+      required:
+        - baseRate
+        - estimatedTotal
+        - gratuity
+        - breakdown
+      properties:
+        baseRate:
+          type: number
+        estimatedTotal:
+          type: number
+        gratuity:
+          type: number
+        breakdown:
+          type: string
