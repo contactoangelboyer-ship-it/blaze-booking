@@ -3,7 +3,7 @@ import { BookingFormData } from "@/lib/types";
 import { ReservationInputVehicleType, useEstimateFare } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Users, Briefcase, CheckCircle2 } from "lucide-react";
+import { Users, Briefcase, CheckCircle2, AlertCircle } from "lucide-react";
 import { DateTimePicker } from "./DateTimePicker";
 
 interface Props {
@@ -59,9 +59,12 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
     ? new Date(formData.pickupDate + "T12:00:00")
     : today;
 
+  const isPickupValid = !!formData.pickupDate && !!formData.pickupTime;
+  const isReturnValid = !isRoundTrip || (!!formData.returnDate && !!formData.returnTime);
+  const isValid = isPickupValid && isReturnValid;
+
   return (
     <div className="space-y-7">
-      {/* Vehicle selection */}
       <div className="space-y-3">
         <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Select Vehicle</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -97,7 +100,6 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
         </div>
       </div>
 
-      {/* Pickup Date & Time */}
       <DateTimePicker
         label="Pickup Date & Time"
         dateValue={formData.pickupDate}
@@ -107,7 +109,6 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
         minDate={today}
       />
 
-      {/* Return Date & Time (round trip only) */}
       {isRoundTrip && (
         <DateTimePicker
           label="Return Date & Time"
@@ -119,7 +120,6 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
         />
       )}
 
-      {/* Hours (hourly only) */}
       {isHourly && (
         <div className="space-y-3">
           <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Duration</Label>
@@ -148,7 +148,6 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
         </div>
       )}
 
-      {/* Fare estimate */}
       <div className="flex items-center justify-between bg-muted border border-border rounded-lg px-5 py-4">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Estimated Fare</p>
@@ -165,9 +164,18 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
         </div>
       </div>
 
+      {!isValid && (
+        <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-md px-3 py-2">
+          <AlertCircle size={13} className="shrink-0" />
+          {!isPickupValid
+            ? "Please select a pickup date and time to continue."
+            : "Please select a return date and time for your round trip."}
+        </div>
+      )}
+
       <div className="pt-2 flex justify-between">
         <Button onClick={onBack} variant="outline" size="lg">Back</Button>
-        <Button onClick={onNext} size="lg" className="px-10 font-semibold">Continue</Button>
+        <Button onClick={onNext} disabled={!isValid} size="lg" className="px-10 font-semibold">Continue</Button>
       </div>
     </div>
   );
