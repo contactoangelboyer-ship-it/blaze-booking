@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { BookingFormData, TripType, AMENITIES } from "@/lib/types";
 import { ReservationInputServiceType } from "@workspace/api-client-react";
 import { AddressAutocomplete } from "./AddressAutocomplete";
+import { RouteMap } from "./RouteMap";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   formData: BookingFormData;
@@ -89,6 +90,8 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
 
   const isValid =
     formData.pickupAddress && (isHourly || formData.dropoffAddress);
+
+  const showMap = !!formData.pickupAddress;
 
   const addStop = () => {
     updateFormData({ stops: [...formData.stops, ""] });
@@ -241,6 +244,33 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
           />
         </div>
       </div>
+
+      {/* Live Route Map — appears as soon as pickup is entered */}
+      <AnimatePresence>
+        {showMap && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: "auto", marginTop: 0 }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <MapPin size={12} className="text-primary" />
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                  Route Preview
+                </Label>
+              </div>
+              <RouteMap
+                pickupStr={formData.pickupAddress}
+                dropoffStr={isHourly ? undefined : formData.dropoffAddress}
+                height="h-64"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Flight Number (Airport Transfer only) */}
       {isAirport && !isHourly && (

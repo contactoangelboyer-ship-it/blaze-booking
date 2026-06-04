@@ -13,12 +13,18 @@ interface AddressAutocompleteProps {
   disabled?: boolean;
 }
 
-const LONG_ISLAND_BOUNDS = {
-  north: 41.2,
-  south: 40.5,
-  east: -71.9,
-  west: -74.3,
-};
+// Long Island + NYC metro + NJ airports + Westchester + SW Connecticut
+const SERVICE_AREA_BOUNDS = new google.maps.LatLngBounds
+  ? undefined // Will be set lazily after maps loads
+  : undefined;
+
+function getBounds() {
+  if (typeof google === "undefined") return undefined;
+  return new google.maps.LatLngBounds(
+    { lat: 40.45, lng: -74.35 }, // SW — includes Newark, Staten Island
+    { lat: 41.35, lng: -71.85 }  // NE — covers all of Long Island + Westchester + SW CT
+  );
+}
 
 export function AddressAutocomplete({
   label,
@@ -76,10 +82,10 @@ export function AddressAutocomplete({
           onLoad={onLoad}
           onPlaceChanged={onPlaceChanged}
           options={{
+            bounds: getBounds(),
+            strictBounds: false,
             componentRestrictions: { country: "us" },
             fields: ["formatted_address", "geometry", "name"],
-            bounds: LONG_ISLAND_BOUNDS,
-            strictBounds: false,
           }}
         >
           {inputEl}

@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { GoogleMap, DirectionsRenderer, Marker } from "@react-google-maps/api";
 import { useGoogleMaps } from "@/hooks/use-google-maps";
-import { MapPin } from "lucide-react";
+import { MapPin, Clock, Route } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MapProps {
   pickupStr?: string;
   dropoffStr?: string;
+  height?: string;
 }
 
 const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
@@ -32,10 +34,16 @@ const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
 
 const DEFAULT_CENTER = { lat: 40.7891, lng: -73.135 };
 
-export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
+interface RouteInfo {
+  distance: string;
+  duration: string;
+}
+
+export function RouteMap({ pickupStr, dropoffStr, height = "h-72" }: MapProps) {
   const { isLoaded } = useGoogleMaps();
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [pickupPos, setPickupPos] = useState<google.maps.LatLngLiteral | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [zoom, setZoom] = useState(9);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -46,6 +54,7 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
     const hasDropoff = dropoffStr && dropoffStr !== "As Directed" && dropoffStr.trim();
 
     if (pickupStr && hasDropoff) {
+      setPickupPos(null);
       const service = new google.maps.DirectionsService();
       service.route(
         {
@@ -56,14 +65,22 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
         (result, status) => {
           if (status === google.maps.DirectionsStatus.OK && result) {
             setDirections(result);
-            setPickupPos(null);
+            const leg = result.routes[0]?.legs[0];
+            if (leg) {
+              setRouteInfo({
+                distance: leg.distance?.text ?? "",
+                duration: leg.duration?.text ?? "",
+              });
+            }
           } else {
             setDirections(null);
+            setRouteInfo(null);
           }
         }
       );
     } else if (pickupStr) {
       setDirections(null);
+      setRouteInfo(null);
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: pickupStr }, (results, status) => {
         if (status === "OK" && results && results[0]) {
@@ -77,6 +94,7 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
     } else {
       setDirections(null);
       setPickupPos(null);
+      setRouteInfo(null);
       setCenter(DEFAULT_CENTER);
       setZoom(9);
     }
@@ -84,16 +102,16 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
 
   if (!isLoaded) {
     return (
-      <div className="h-64 w-full rounded-md overflow-hidden border border-border bg-[#0d0d0d] flex items-center justify-center">
+      <div className={`${height} w-full rounded-lg overflow-hidden border border-border bg-[#0d0d0d] flex items-center justify-center`}>
         <div className="flex flex-col items-center gap-2 text-muted-foreground">
-          <MapPin size={20} className="animate-pulse" />
+          <MapPin size={20} className="animate-pulse text-primary" />
           <span className="text-xs">Loading map…</span>
         </div>
       </div>
     );
   }
 
-  const pickupIcon: google.maps.Symbol = {
+  const pinIcon: google.maps.Symbol = {
     path: google.maps.SymbolPath.CIRCLE,
     scale: 9,
     fillColor: "#e63946",
@@ -103,7 +121,7 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
   };
 
   return (
-    <div className="h-64 w-full rounded-md overflow-hidden border border-border">
+    <div className={`${height} w-full rounded-lg overflow-hidden border border-border relative`}>
       <GoogleMap
         mapContainerStyle={{ height: "100%", width: "100%" }}
         center={center}
@@ -114,6 +132,9 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
           zoomControl: true,
           gestureHandling: "cooperative",
           clickableIcons: false,
+          zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM,
+          },
         }}
         onLoad={(map) => { mapRef.current = map; }}
       >
@@ -127,22 +148,38 @@ export function RouteMap({ pickupStr, dropoffStr }: MapProps) {
                 strokeOpacity: 0.9,
               },
               markerOptions: {
-                icon: {
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 9,
-                  fillColor: "#e63946",
-                  fillOpacity: 1,
-                  strokeColor: "#fff",
-                  strokeWeight: 2,
-                },
+                icon: pinIcon,
               },
             }}
           />
         )}
         {pickupPos && !directions && (
-          <Marker position={pickupPos} icon={pickupIcon} title="Pickup" />
+          <Marker position={pickupPos} icon={pinIcon} title="Pickup" />
         )}
       </GoogleMap>
+
+      {/* Route info overlay */}
+      <AnimatePresence>
+        {routeInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.25 }}
+            className="absolute bottom-3 left-3 z-10 flex items-center gap-3 bg-black/80 backdrop-blur-sm border border-white/10 rounded-md px-3 py-2"
+          >
+            <div className="flex items-center gap-1.5 text-xs text-white/90">
+              <Route size={12} className="text-primary shrink-0" />
+              <span className="font-semibold">{routeInfo.distance}</span>
+            </div>
+            <div className="w-px h-3 bg-white/20" />
+            <div className="flex items-center gap-1.5 text-xs text-white/70">
+              <Clock size={12} className="shrink-0" />
+              <span>{routeInfo.duration}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
