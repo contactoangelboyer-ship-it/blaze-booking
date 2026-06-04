@@ -28,8 +28,8 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 const VEHICLE_LABELS: Record<string, string> = {
-  sedan: "Lincoln Continental (Luxury Sedan)",
-  suv: "Lincoln Navigator (Luxury SUV)",
+  sedan: "Lincoln MKT 2019 (Luxury SUV Crossover)",
+  suv: "Lincoln Navigator L (Extended Full-Size SUV)",
 };
 
 const rowVariants = {

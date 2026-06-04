@@ -17,21 +17,21 @@ interface Props {
 const vehicles = [
   {
     id: ReservationInputVehicleType.sedan,
-    name: "Lincoln Continental",
-    type: "Luxury Sedan",
-    capacity: 3,
-    luggage: 3,
-    image: "/sedan.png",
-    desc: "Executive comfort for airport runs & corporate travel.",
+    name: "Lincoln MKT",
+    type: "2019 · Luxury SUV Crossover",
+    capacity: 6,
+    luggage: 4,
+    image: "/mkt.png",
+    desc: "Classic black car for executive transfers & corporate travel.",
   },
   {
     id: ReservationInputVehicleType.suv,
-    name: "Lincoln Navigator",
-    type: "Luxury SUV",
-    capacity: 6,
-    luggage: 6,
+    name: "Lincoln Navigator L",
+    type: "Extended Wheelbase · Full-Size SUV",
+    capacity: 7,
+    luggage: 7,
     image: "/suv.png",
-    desc: "Maximum space for groups, families & extra luggage.",
+    desc: "Extended wheelbase with maximum cargo space for groups & families.",
   },
 ];
 
