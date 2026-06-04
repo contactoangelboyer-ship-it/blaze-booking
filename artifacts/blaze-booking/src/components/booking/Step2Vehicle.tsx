@@ -111,14 +111,29 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
                     <CheckCircle2 size={20} fill="hsl(0 72% 51%)" className="text-primary-foreground" />
                   </motion.div>
                 )}
-                <div className="bg-black/60 flex items-center justify-center h-40 p-4 overflow-hidden">
+                <div
+                  className="relative flex items-center justify-center overflow-hidden"
+                  style={{
+                    height: "200px",
+                    background: "linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 50%, #1c1c1c 100%)",
+                  }}
+                >
                   <motion.img
                     src={v.image}
                     alt={v.name}
-                    className="h-full w-full object-contain drop-shadow-xl"
-                    animate={isSelected ? { scale: 1.04 } : { scale: 1 }}
-                    transition={{ duration: 0.3 }}
+                    className="w-full object-contain drop-shadow-2xl"
+                    style={{ height: "176px", padding: "12px 16px" }}
+                    animate={isSelected ? { scale: 1.06, filter: "drop-shadow(0 8px 24px rgba(220,38,38,0.25))" } : { scale: 1, filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.8))" }}
+                    transition={{ duration: 0.35 }}
                   />
+                  {isSelected && (
+                    <motion.div
+                      className="absolute inset-0 rounded-t-lg pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      style={{ boxShadow: "inset 0 0 40px rgba(220,38,38,0.12)" }}
+                    />
+                  )}
                 </div>
                 <div className={`p-4 transition-colors duration-200 ${isSelected ? "bg-primary/10" : "bg-muted"}`}>
                   <p className="font-bold text-foreground">{v.name}</p>
