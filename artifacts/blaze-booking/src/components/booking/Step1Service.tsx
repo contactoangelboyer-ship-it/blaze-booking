@@ -6,17 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
-  Plane,
-  MapPin,
-  Clock,
-  Briefcase,
-  GlassWater,
-  Users,
-  Luggage,
-  Plus,
-  X,
-  ArrowRight,
-  RefreshCw,
+  Plane, MapPin, Clock, Briefcase, GlassWater,
+  Users, Luggage, Plus, X, ArrowRight, RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,45 +31,51 @@ const serviceTypes = [
   { id: ReservationInputServiceType.special_event, label: "Special Event", icon: GlassWater },
 ];
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+};
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
+};
+
 function CounterInput({
-  label,
-  icon: Icon,
-  value,
-  min,
-  max,
-  onChange,
+  label, icon: Icon, value, min, max, onChange,
 }: {
-  label: string;
-  icon: React.ElementType;
-  value: number;
-  min: number;
-  max: number;
+  label: string; icon: React.ElementType; value: number; min: number; max: number;
   onChange: (val: number) => void;
 }) {
   return (
     <div className="space-y-2">
       <Label className="flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
-        <Icon size={13} />
-        {label}
+        <Icon size={13} />{label}
       </Label>
       <div className="flex items-center gap-3">
-        <button
+        <motion.button
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
+          whileTap={{ scale: 0.88 }}
           className="w-8 h-8 rounded border border-border bg-muted hover:bg-accent hover:border-primary/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-lg font-bold text-foreground transition-colors"
-        >
-          −
-        </button>
-        <span className="w-8 text-center font-semibold text-lg">{value}</span>
-        <button
+        >−</motion.button>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={value}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.12 }}
+            className="w-8 text-center font-semibold text-lg"
+          >{value}</motion.span>
+        </AnimatePresence>
+        <motion.button
           type="button"
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
+          whileTap={{ scale: 0.88 }}
           className="w-8 h-8 rounded border border-border bg-muted hover:bg-accent hover:border-primary/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-lg font-bold text-foreground transition-colors"
-        >
-          +
-        </button>
+        >+</motion.button>
       </div>
     </div>
   );
@@ -87,65 +84,48 @@ function CounterInput({
 export function Step1Service({ formData, updateFormData, onNext }: Props) {
   const isHourly = formData.tripType === "hourly";
   const isAirport = formData.serviceType === ReservationInputServiceType.airport_transfer;
-
-  const isValid =
-    formData.pickupAddress && (isHourly || formData.dropoffAddress);
-
+  const isValid = formData.pickupAddress && (isHourly || formData.dropoffAddress);
   const showMap = !!formData.pickupAddress;
 
-  const addStop = () => {
-    updateFormData({ stops: [...formData.stops, ""] });
+  const addStop = () => updateFormData({ stops: [...formData.stops, ""] });
+  const updateStop = (i: number, v: string) => {
+    const u = [...formData.stops]; u[i] = v; updateFormData({ stops: u });
   };
-
-  const updateStop = (index: number, value: string) => {
-    const updated = [...formData.stops];
-    updated[index] = value;
-    updateFormData({ stops: updated });
-  };
-
-  const removeStop = (index: number) => {
-    updateFormData({ stops: formData.stops.filter((_, i) => i !== index) });
-  };
-
+  const removeStop = (i: number) => updateFormData({ stops: formData.stops.filter((_, j) => j !== i) });
   const toggleAmenity = (id: string) => {
-    const current = formData.amenities;
-    if (current.includes(id)) {
-      updateFormData({ amenities: current.filter((a) => a !== id) });
-    } else {
-      updateFormData({ amenities: [...current, id] });
-    }
+    const cur = formData.amenities;
+    updateFormData({ amenities: cur.includes(id) ? cur.filter(a => a !== id) : [...cur, id] });
   };
 
   return (
     <div className="space-y-7">
       {/* Trip Type */}
       <div className="space-y-3">
-        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-          Trip Type
-        </Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Trip Type</Label>
+        <motion.div className="grid grid-cols-3 gap-2" variants={stagger} initial="hidden" animate="visible">
           {tripTypes.map((t) => {
             const Icon = t.icon;
             const isSelected = formData.tripType === t.id;
             return (
-              <button
+              <motion.button
                 key={t.id}
+                variants={fadeUp}
                 type="button"
-                onClick={() => {
-                  updateFormData({
-                    tripType: t.id,
-                    serviceType:
-                      t.id === "hourly"
-                        ? ReservationInputServiceType.hourly
-                        : formData.serviceType === ReservationInputServiceType.hourly
-                        ? ReservationInputServiceType.airport_transfer
-                        : formData.serviceType,
-                  });
-                }}
+                onClick={() => updateFormData({
+                  tripType: t.id,
+                  serviceType: t.id === "hourly"
+                    ? ReservationInputServiceType.hourly
+                    : formData.serviceType === ReservationInputServiceType.hourly
+                    ? ReservationInputServiceType.airport_transfer
+                    : formData.serviceType,
+                })}
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 className={cn(
-                  "p-3.5 rounded-lg border-2 flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer",
+                  "p-3.5 rounded-lg border-2 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer",
                   isSelected
-                    ? "bg-primary border-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/20"
                     : "bg-muted border-border hover:border-primary/50 hover:bg-accent text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -154,48 +134,56 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
                 <span className={cn("text-[10px]", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
                   {t.desc}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
-      {/* Service Type (hidden for hourly) */}
-      {!isHourly && (
-        <div className="space-y-3">
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-            Service Type
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {serviceTypes.map((type) => {
-              const Icon = type.icon;
-              const isSelected = formData.serviceType === type.id;
-              return (
-                <button
-                  key={type.id}
-                  type="button"
-                  onClick={() => updateFormData({ serviceType: type.id })}
-                  className={cn(
-                    "p-3 rounded border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer",
-                    isSelected
-                      ? "bg-primary border-primary text-primary-foreground shadow-sm"
-                      : "bg-muted border-border hover:border-primary/40 hover:bg-accent text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon size={17} />
-                  <span className="text-[11px] font-medium leading-tight">{type.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Service Type */}
+      <AnimatePresence>
+        {!isHourly && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden space-y-3"
+          >
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Service Type</Label>
+            <motion.div className="grid grid-cols-2 sm:grid-cols-4 gap-2" variants={stagger} initial="hidden" animate="visible">
+              {serviceTypes.map((type) => {
+                const Icon = type.icon;
+                const isSelected = formData.serviceType === type.id;
+                return (
+                  <motion.button
+                    key={type.id}
+                    variants={fadeUp}
+                    type="button"
+                    onClick={() => updateFormData({ serviceType: type.id })}
+                    whileHover={{ scale: 1.04, y: -1 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                    className={cn(
+                      "p-3 rounded border flex flex-col items-center justify-center gap-2 text-center cursor-pointer",
+                      isSelected
+                        ? "bg-primary border-primary text-primary-foreground shadow-sm shadow-primary/20"
+                        : "bg-muted border-border hover:border-primary/40 hover:bg-accent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon size={17} />
+                    <span className="text-[11px] font-medium leading-tight">{type.label}</span>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Addresses */}
       <div className="space-y-3">
-        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-          Trip Details
-        </Label>
+        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Trip Details</Label>
         <div className="space-y-3">
           <AddressAutocomplete
             label="Pickup Location"
@@ -203,10 +191,14 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
             onChange={(val) => updateFormData({ pickupAddress: val })}
             placeholder="Address, airport, or landmark"
           />
-
-          {/* Intermediate stops */}
           {formData.stops.map((stop, i) => (
-            <div key={i} className="relative">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8 }}
+              className="relative"
+            >
               <AddressAutocomplete
                 label={`Stop ${i + 1}`}
                 value={stop}
@@ -220,21 +212,18 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
               >
                 <X size={15} />
               </button>
-            </div>
+            </motion.div>
           ))}
-
-          {/* Add Stop button */}
           {!isHourly && (
-            <button
+            <motion.button
               type="button"
               onClick={addStop}
+              whileHover={{ x: 2 }}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-medium py-1"
             >
-              <Plus size={13} />
-              Add a stop
-            </button>
+              <Plus size={13} />Add a stop
+            </motion.button>
           )}
-
           <AddressAutocomplete
             label="Dropoff Location"
             value={isHourly ? "As Directed" : formData.dropoffAddress}
@@ -245,12 +234,12 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
         </div>
       </div>
 
-      {/* Live Route Map — appears as soon as pickup is entered */}
+      {/* Live Route Map */}
       <AnimatePresence>
         {showMap && (
           <motion.div
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: "auto", marginTop: 0 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
             className="overflow-hidden"
@@ -258,9 +247,7 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <MapPin size={12} className="text-primary" />
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                  Route Preview
-                </Label>
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Route Preview</Label>
               </div>
               <RouteMap
                 pickupStr={formData.pickupAddress}
@@ -272,58 +259,44 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Flight Number (Airport Transfer only) */}
-      {isAirport && !isHourly && (
-        <div className="space-y-3">
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-            Flight Details
-          </Label>
-          <div className="max-w-xs space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Flight Number (optional)</Label>
-            <div className="relative">
-              <Plane size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="e.g. DL 1234"
-                value={formData.flightNumber || ""}
-                onChange={(e) => updateFormData({ flightNumber: e.target.value.toUpperCase() })}
-                className="bg-muted border-border uppercase pl-8"
-              />
+      {/* Flight Number */}
+      <AnimatePresence>
+        {isAirport && !isHourly && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden space-y-3"
+          >
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Flight Details</Label>
+            <div className="max-w-xs space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Flight Number (optional)</Label>
+              <div className="relative">
+                <Plane size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="e.g. DL 1234"
+                  value={formData.flightNumber || ""}
+                  onChange={(e) => updateFormData({ flightNumber: e.target.value.toUpperCase() })}
+                  className="bg-muted border-border uppercase pl-8"
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Passengers & Luggage */}
       <div className="space-y-3">
-        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-          Passengers & Luggage
-        </Label>
+        <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Passengers & Luggage</Label>
         <div className="flex flex-wrap gap-8">
-          <CounterInput
-            label="Passengers"
-            icon={Users}
-            value={formData.passengers}
-            min={1}
-            max={6}
-            onChange={(val) => updateFormData({ passengers: val })}
-          />
-          <CounterInput
-            label="Luggage"
-            icon={Luggage}
-            value={formData.luggage ?? 0}
-            min={0}
-            max={10}
-            onChange={(val) => updateFormData({ luggage: val })}
-          />
+          <CounterInput label="Passengers" icon={Users} value={formData.passengers} min={1} max={6}
+            onChange={(val) => updateFormData({ passengers: val })} />
+          <CounterInput label="Luggage" icon={Luggage} value={formData.luggage ?? 0} min={0} max={10}
+            onChange={(val) => updateFormData({ luggage: val })} />
           {isHourly && (
-            <CounterInput
-              label="Hours (min. 3)"
-              icon={Clock}
-              value={formData.hours || 3}
-              min={3}
-              max={24}
-              onChange={(val) => updateFormData({ hours: val })}
-            />
+            <CounterInput label="Hours (min. 3)" icon={Clock} value={formData.hours || 3} min={3} max={24}
+              onChange={(val) => updateFormData({ hours: val })} />
           )}
         </div>
       </div>
@@ -333,16 +306,20 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
         <Label className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
           Amenities <span className="normal-case font-normal text-muted-foreground">(optional)</span>
         </Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <motion.div className="grid grid-cols-2 sm:grid-cols-4 gap-2" variants={stagger} initial="hidden" animate="visible">
           {AMENITIES.map((a) => {
             const isSelected = formData.amenities.includes(a.id);
             return (
-              <button
+              <motion.button
                 key={a.id}
+                variants={fadeUp}
                 type="button"
                 onClick={() => toggleAmenity(a.id)}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 className={cn(
-                  "p-2.5 rounded border flex items-center gap-2 text-left transition-all cursor-pointer",
+                  "p-2.5 rounded border flex items-center gap-2 text-left cursor-pointer",
                   isSelected
                     ? "bg-primary/10 border-primary/60 text-foreground"
                     : "bg-muted border-border hover:border-primary/30 hover:bg-accent text-muted-foreground hover:text-foreground"
@@ -350,16 +327,18 @@ export function Step1Service({ formData, updateFormData, onNext }: Props) {
               >
                 <span className="text-base">{a.emoji}</span>
                 <span className="text-[11px] font-medium leading-tight">{a.label}</span>
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       <div className="pt-2 flex justify-end">
-        <Button onClick={onNext} disabled={!isValid} size="lg" className="px-10 font-semibold">
-          Continue
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+          <Button onClick={onNext} disabled={!isValid} size="lg" className="px-10 font-semibold">
+            Continue
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
