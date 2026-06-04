@@ -79,7 +79,7 @@ export function BookingForm() {
   };
 
   return (
-    <div className="w-full bg-card border border-border rounded-lg overflow-hidden shadow-xl">
+    <div className="w-full bg-card border border-border rounded-lg shadow-xl">
       {/* Step header */}
       <div className="border-b border-border px-6 py-4">
         <div className="flex items-center justify-between gap-2">
@@ -162,7 +162,7 @@ export function BookingForm() {
       </div>
 
       {/* Step content */}
-      <div className="p-6 md:p-8 relative min-h-[420px]">
+      <div className="p-6 md:p-8 relative min-h-[420px] overflow-x-clip">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
