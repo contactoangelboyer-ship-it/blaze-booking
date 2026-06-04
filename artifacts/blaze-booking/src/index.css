@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Hide Replit injected badge */
 #replit-badge-container,
 #replit-badge,
 [data-replit-badge],
