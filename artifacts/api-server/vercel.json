@@ -1,12 +1,15 @@
 {
-    "version": 2,
-    "functions": {
-      "api/index.js": {
-        "includeFiles": "dist/**"
-      }
-    },
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/api/index.js" }
-    ]
-  }
-  
+  "version": 2,
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "dist/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
+}
