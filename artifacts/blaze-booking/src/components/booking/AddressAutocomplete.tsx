@@ -13,11 +13,6 @@ interface AddressAutocompleteProps {
   disabled?: boolean;
 }
 
-// Long Island + NYC metro + NJ airports + Westchester + SW Connecticut
-const SERVICE_AREA_BOUNDS = new google.maps.LatLngBounds
-  ? undefined // Will be set lazily after maps loads
-  : undefined;
-
 function getBounds() {
   if (typeof google === "undefined") return undefined;
   return new google.maps.LatLngBounds(
