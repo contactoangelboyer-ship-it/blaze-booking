@@ -162,7 +162,7 @@ export function BookingForm() {
       </div>
 
       {/* Step content */}
-      <div className="p-6 md:p-8 relative min-h-[420px] overflow-x-clip">
+      <div className="p-6 md:p-8 relative min-h-[420px]">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
