@@ -65,13 +65,16 @@ router.post("/reservations", async (req, res): Promise<void> => {
     status: "pending",
   }).returning();
 
-  // Send emails asynchronously — don't block the response but log any failures
-  Promise.all([
-    sendClientConfirmationEmail(reservation),
-    sendOperatorNotificationEmail(reservation),
-  ]).catch((err) => {
-    req.log.error({ err, reservationId: reservation.id }, "⚠️ One or more emails failed after reservation saved");
-  });
+  // Await emails before responding — Vercel kills the function the moment res is sent,
+  // so fire-and-forget patterns are unreliable in serverless environments.
+  try {
+    await Promise.all([
+      sendClientConfirmationEmail(reservation),
+      sendOperatorNotificationEmail(reservation),
+    ]);
+  } catch (err) {
+    req.log.error({ err, reservationId: reservation.id }, "⚠️ One or more emails failed — reservation was still saved");
+  }
 
   res.status(201).json({
     ...reservation,
