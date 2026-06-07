@@ -13,7 +13,7 @@ export interface VehiclePricingData {
 export const PRICING: VehiclePricingData[] = [
   {
     vehicleType: "sedan",
-    displayName: "Lincoln Continental/MKZ",
+    displayName: "Lincoln MKT",
     capacity: 3,
     airportBaseRate: 95,
     perMileRate: 3.0,
