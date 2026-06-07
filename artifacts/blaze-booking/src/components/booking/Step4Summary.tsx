@@ -1,7 +1,5 @@
 import { BookingFormData, AMENITIES } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { useEstimateFare } from "@workspace/api-client-react";
-import { useEffect } from "react";
 import { RouteMap } from "./RouteMap";
 import { Calendar, Clock, MapPin, Car, User, Phone, Mail, Luggage, Users, Plane, RefreshCw, ArrowRight } from "lucide-react";
 
@@ -33,7 +31,7 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 const VEHICLE_LABELS: Record<string, string> = {
-  sedan: "Lincoln Continental (Luxury Sedan)",
+  sedan: "Lincoln MKT (Luxury Sedan)",
   suv: "Lincoln Navigator (Luxury SUV)",
 };
 
@@ -69,19 +67,6 @@ function formatDisplayTime(timeStr: string) {
 }
 
 export function Step4Summary({ formData, onSubmit, onBack, isSubmitting }: Props) {
-  const { mutate: estimateFare, data: fareEstimate } = useEstimateFare();
-
-  useEffect(() => {
-    estimateFare({
-      data: {
-        vehicleType: formData.vehicleType,
-        serviceType: formData.serviceType,
-        distanceMiles: 15,
-        hours: formData.hours || 3,
-      },
-    });
-  }, []);
-
   const isHourly = formData.tripType === "hourly";
   const isRoundTrip = formData.tripType === "round_trip";
   const dropoff = isHourly ? "As Directed" : formData.dropoffAddress || "—";
@@ -162,19 +147,6 @@ export function Step4Summary({ formData, onSubmit, onBack, isSubmitting }: Props
           <p className="text-sm text-foreground italic">{formData.specialRequests}</p>
         </div>
       )}
-
-      {/* Fare */}
-      <div className="flex items-center justify-between bg-primary/10 border border-primary/30 rounded-lg px-6 py-5">
-        <div>
-          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Estimated Total</p>
-          <p className="text-[11px] text-muted-foreground mt-1 max-w-xs">
-            {fareEstimate?.breakdown || "Includes base rate & 20% gratuity. Tolls not included."}
-          </p>
-        </div>
-        <p className="text-4xl font-bold text-primary tabular-nums">
-          {fareEstimate ? `$${fareEstimate.estimatedTotal.toFixed(2)}` : "—"}
-        </p>
-      </div>
 
       <div className="pt-2 flex justify-between">
         <Button onClick={onBack} variant="outline" size="lg" disabled={isSubmitting}>Back</Button>
