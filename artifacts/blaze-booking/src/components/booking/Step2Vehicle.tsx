@@ -1,6 +1,5 @@
-import { useEffect } from "react";
 import { BookingFormData } from "@/lib/types";
-import { ReservationInputVehicleType, useEstimateFare } from "@workspace/api-client-react";
+import { ReservationInputVehicleType } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Users, Briefcase, CheckCircle2, AlertCircle } from "lucide-react";
@@ -48,22 +47,6 @@ const cardVariants = {
 export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props) {
   const isHourly = formData.tripType === "hourly";
   const isRoundTrip = formData.tripType === "round_trip";
-
-  const { mutate: estimateFare, data: fareEstimate, isPending: estimating } = useEstimateFare();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      estimateFare({
-        data: {
-          vehicleType: formData.vehicleType,
-          serviceType: formData.serviceType,
-          distanceMiles: 15,
-          hours: formData.hours || 3,
-        },
-      });
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [formData.vehicleType, formData.serviceType, formData.hours, estimateFare]);
 
   const today = new Date(new Date().setHours(0, 0, 0, 0));
   const returnMinDate = formData.pickupDate
@@ -210,43 +193,6 @@ export function Step2Vehicle({ formData, updateFormData, onNext, onBack }: Props
           </div>
         </div>
       )}
-
-      {/* Fare estimate */}
-      <motion.div
-        className="flex items-center justify-between bg-muted border border-border rounded-lg px-5 py-4"
-        layout
-      >
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Estimated Fare</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{fareEstimate?.breakdown || "Based on typical distance"}</p>
-        </div>
-        <div className="text-3xl font-bold text-primary tabular-nums">
-          <AnimatePresence mode="wait">
-            {estimating ? (
-              <motion.span
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="animate-pulse text-muted-foreground text-xl"
-              >
-                ···
-              </motion.span>
-            ) : fareEstimate ? (
-              <motion.span
-                key={fareEstimate.estimatedTotal}
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                ${fareEstimate.estimatedTotal.toFixed(2)}
-              </motion.span>
-            ) : (
-              <motion.span key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>—</motion.span>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
 
       {/* Validation warning */}
       <AnimatePresence>
