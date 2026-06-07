@@ -22,7 +22,7 @@ function formatServiceType(type: string): string {
 }
 
 function formatVehicle(type: string): string {
-  return type === "suv" ? "Lincoln Navigator (Luxury SUV)" : "Lincoln Continental (Luxury Sedan)";
+  return type === "suv" ? "Lincoln Navigator (Luxury SUV)" : "Lincoln MKT (Luxury Sedan)";
 }
 
 function formatDate(dateStr: string): string {
